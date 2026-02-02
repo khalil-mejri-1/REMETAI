@@ -50,8 +50,8 @@ export default function Hero_main({ onRegisterClick }) {
                             <h3 className="hero-fullname">
                                 <span className="acronym-highlight">RE</span>search{" "}
                                 <span className="acronym-highlight">MET</span>hodologies on{" "}
-                                <span className="acronym-highlight">A</span>rtificial{" "}
-                                <span className="acronym-highlight">I</span>ntelligence
+                                <span style={{ display: 'inline-block' }}><span className="acronym-highlight">A</span>rtificial</span>{" "}
+                                <span style={{ display: 'inline-block' }}><span className="acronym-highlight">I</span>ntelligence</span>
                             </h3>
                         </div>
                     </RevealOnScroll>

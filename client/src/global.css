@@ -1287,7 +1287,8 @@ section[id] {
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 100px;
   /* Pill shape like AI badge */
-  padding: 10px 28px;
+  padding: 6px 20px;
+  /* Reduced from 10px 28px */
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.05);
   margin-bottom: 2.5rem;
   opacity: 0;
@@ -1295,6 +1296,14 @@ section[id] {
   animation: fadeIn 0.8s ease-out 0.4s forwards, slideUp 0.8s ease-out 0.4s forwards;
   position: relative;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .hero-phrase-card {
+    padding: 5px 12px;
+    /* Tighter padding on mobile */
+    margin-bottom: 2rem;
+  }
 }
 
 .hero-phrase-card::before {
