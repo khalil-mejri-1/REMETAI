@@ -2,7 +2,7 @@ import React from 'react';
 import noron from "../img/noron.png";
 import RevealOnScroll from './RevealOnScroll';
 
-export default function Hero_main({ onRegisterClick }) {
+export default function Hero_main({ onRegisterClick, isRegistrationClosed }) {
 
     // Logic to handle the click
     const handleRegisterBtnClick = () => {
@@ -14,13 +14,18 @@ export default function Hero_main({ onRegisterClick }) {
             // Trigger the Success/Info Alert
             window.dispatchEvent(new Event('trigger-success-alert'));
         }
+        else if (isRegistrationClosed) {
+            // 2. If Registration is CLOSED (and user not registered)
+            // Trigger the Capacity Alert
+            window.dispatchEvent(new Event('trigger-capacity-alert'));
+        }
         else if (isLoggedIn) {
-            // 2. If connected but NOT registered yet
+            // 3. If connected but NOT registered yet
             // Proceed to workshop registration form
             onRegisterClick();
         }
         else {
-            // 3. If NOT connected
+            // 4. If NOT connected
             // Trigger the Auth Alert
             window.dispatchEvent(new Event('trigger-auth-alert'));
         }

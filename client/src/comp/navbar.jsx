@@ -8,7 +8,7 @@ import { auth, getRedirectResult } from '../firebase'; // Import firebase auth
 import API_BASE_URL from '../config';
 const ROLE_API_URL = `${API_BASE_URL}/api/user/role/`;
 
-export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop, onAuthUpdate }) {
+export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop, onAuthUpdate, isRegistrationClosed }) {
   const navigate = useNavigate();
   // --- UI States ---
   const [isOpen, setIsOpen] = useState(false);
@@ -21,8 +21,8 @@ export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDashboardDropdown, setShowDashboardDropdown] = useState(false);
 
-  // 🌟 Registration Capacity State 🌟
-  const [isRegistrationClosed, setIsRegistrationClosed] = useState(false);
+  // 🌟 Registration Capacity State (Now a Prop) 🌟
+  // const [isRegistrationClosed, setIsRegistrationClosed] = useState(false); // REMOVED: Now passed as prop
   const [showCapacityAlert, setShowCapacityAlert] = useState(false);
 
   // --- Auth State ---
@@ -131,7 +131,6 @@ export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop
     };
     const handleOpenRegister = () => { openModal_register(); };
     const handleOpenLogin = () => { openModal_login(); };
-    // 👈 NOUVEAU GESTIONNAIRE D'ÉVÉNEMENT
     const handleOpenWorkshopModal = () => { openModal(); };
 
     const handleSuccessTrigger = () => {
@@ -139,12 +138,18 @@ export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop
       lockScroll();
     };
 
+    // 🌟 Capacity Alert Trigger 🌟
+    const handleCapacityTrigger = () => {
+      setShowCapacityAlert(true);
+      lockScroll();
+    };
+
     window.addEventListener('trigger-auth-alert', handleAuthTrigger);
     window.addEventListener('trigger-success-alert', handleSuccessTrigger);
     window.addEventListener('open-register-modal', handleOpenRegister);
     window.addEventListener('open-login-modal', handleOpenLogin);
-    // 👈 NOUVEL ÉCOUTEUR
     window.addEventListener('open-workshop-modal', handleOpenWorkshopModal);
+    window.addEventListener('trigger-capacity-alert', handleCapacityTrigger); // New Listener
 
     if (isWorkshopOpen) {
       lockScroll();
@@ -156,26 +161,12 @@ export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop
       window.removeEventListener('open-register-modal', handleOpenRegister);
       window.removeEventListener('open-login-modal', handleOpenLogin);
       window.removeEventListener('open-workshop-modal', handleOpenWorkshopModal);
+      window.removeEventListener('trigger-capacity-alert', handleCapacityTrigger);
     };
   }, [isWorkshopOpen, onOpenWorkshop]);
 
-  // 🌟 Fetch Registration Settings 🌟
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/settings/workshop_registration`);
-        // Check if value is FALSE (meaning disabled)
-        if (response.data.value === false) {
-          setIsRegistrationClosed(true);
-        } else {
-          setIsRegistrationClosed(false);
-        }
-      } catch (err) {
-        console.error("Error fetching settings:", err);
-      }
-    };
-    fetchSettings();
-  }, []);
+  // 🌟 Fetch Registration Settings (REMOVED - Handled by Parent Home.jsx) 🌟
+  // useEffect(() => { ... });
 
   // ... (code existant)
 
@@ -734,7 +725,7 @@ export default function Navbar({ isWorkshopOpen, onOpenWorkshop, onCloseWorkshop
 
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#0f172a', marginBottom: '1rem' }}>Maximum Capacity Reached</h2>
                 <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '2rem' }}>
-                  We truly appreciate your interest! However, we have reached maximum capacity for this workshop.
+                  We truly appreciate your interest! However, we have reached maximum capacity for REMET-AI workshop.
                   <br /><br />
                   We hope to welcome you at our next event!
                 </p>
