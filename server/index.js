@@ -127,10 +127,22 @@ app.post('/api/google-login', async (req, res) => {
   try {
     const { fullName, email } = req.body;
     let user = await User.findOne({ email });
+
     if (!user) {
+      // Check if registration is allowed
+      const setting = await Setting.findOne({ key: 'workshop_registration' });
+      const isRegistrationOpen = setting ? setting.value : true; // Default to open if not set
+
+      if (!isRegistrationOpen) {
+        return res.status(403).json({
+          message: "Registration is currently closed due to maximum capacity."
+        });
+      }
+
       user = new User({ fullName, email, password: null });
       await user.save();
     }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1169,6 +1181,10 @@ app.post('/api/settings', async (req, res) => {
 });
 
 
+
+// 🌟 Live Stream Route 🌟
+const liveRoutes = require('./routes/live');
+app.use('/api/live', liveRoutes);
 
 // 404 Handler (Must be after all routes)
 app.use((req, res) => res.status(404).json({ message: 'Route non trouvée' }));

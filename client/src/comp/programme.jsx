@@ -26,6 +26,7 @@ export default function Programme() {
   const [qrCodeData, setQrCodeData] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [currentScanType, setCurrentScanType] = useState('entry');
+  const [completedSessions, setCompletedSessions] = useState(new Set()); // Stores IDs of completed sessions
 
   const [newDayName, setNewDayName] = useState('');
   const [dayToRemove, setDayToRemove] = useState('');
@@ -47,6 +48,30 @@ export default function Programme() {
     } catch (error) { console.error("Data error:", error); }
   };
 
+  const fetchUserAttendance = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+      // Note: Ideally backend should have /api/attendance/me. 
+      // Using existing /api/attendance and filtering client-side for now.
+      const res = await fetch(`${API_BASE_URL}/api/attendance`);
+      if (res.ok) {
+        const allRecords = await res.json();
+        // Filter my records that allow check-out (meaning completed or at least started)
+        // User wants tick if "Check-in AND Check-out"
+        const myCompleted = new Set();
+
+        allRecords.forEach(record => {
+          if (record.userId === userId && record.checkInTime && record.checkOutTime) {
+            myCompleted.add(Number(record.sessionId));
+          }
+        });
+        setCompletedSessions(myCompleted);
+      }
+    } catch (err) { console.error("Attendance fetch error", err); }
+  };
+
   const checkAdminStatus = async () => {
     const email = localStorage.getItem('userEmail');
     if (!email) return;
@@ -60,7 +85,7 @@ export default function Programme() {
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
-      await Promise.all([fetchData(), checkAdminStatus()]);
+      await Promise.all([fetchData(), checkAdminStatus(), fetchUserAttendance()]);
       const isLogin = localStorage.getItem('login') === 'true';
       const isWorkshop = localStorage.getItem('WORKSHOP') === 'true';
       setShowPresenceBtn(isLogin && isWorkshop);
@@ -231,6 +256,12 @@ export default function Programme() {
       });
 
       const result = await res.json();
+
+      if (res.ok && scanType === 'exit') {
+        // If checkout success, update local state to show tick immediately
+        setCompletedSessions(prev => new Set(prev).add(Number(payload.sessionId)));
+      }
+
       return { success: res.ok, message: result.message };
     } catch (err) {
       return { success: false, message: "Server connection error" };
@@ -353,10 +384,22 @@ export default function Programme() {
 
                     {item.attendanceEnabled && (
                       <div className="prog-card-footer">
-                        {showPresenceBtn && (
-                          <button className="prog-scan-btn" onClick={() => openScanner(item)}>
-                            <QRIcon /> Scan QR
-                          </button>
+                        {completedSessions.has(item.id) ? (
+                          /* Validation Tick for Completed Session */
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontWeight: '700', fontSize: '0.8rem' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Session Validated
+                          </div>
+                        ) : (
+                          /* Show Scan Button If Not Completed */
+                          showPresenceBtn && (
+                            <button className="prog-scan-btn" onClick={() => openScanner(item)}>
+                              <QRIcon /> Scan QR
+                            </button>
+                          )
                         )}
                         {isAdmin && (
                           <button className="prog-qr-btn" onClick={() => handleOpenQRSelect(item)}>
